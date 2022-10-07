@@ -15,7 +15,9 @@
     "dotenv": "^16.0.3",
     "express": "~4.16.1",
     "ip": "^1.1.8",
-    "logger": "0.0.1"
+    "logger": "0.0.1",
+    "pino": "^8.6.1",
+    "pino-pretty": "^9.1.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

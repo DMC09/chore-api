@@ -2,7 +2,7 @@ import express from "express";
 import ip from 'ip';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import logger from '../util/logger.js'
+import logger from './util/logger.js'
 
 dotenv.config();
 const PORT = process.env.SEVER_PORT

@@ -6,7 +6,7 @@ import logger from "./util/logger.js";
 // @ts-ignore
 import httpResponse from "express-http-response";
 import {OK,CREATED,BAD_REQUEST,NOT_FOUND,INTERNAL_SERVER_ERROR} from './domain/responses.js'
-import {getItemsFromStore,updateItemsFromStore} from './controller/store.controller.js'
+import {getItemsFromStore,updateItemsFromStore,deleteItemsFromStore,addItemsToStore} from './controller/store.controller.js'
 
 //config
 dotenv.config();
@@ -32,8 +32,14 @@ app.get("/general",(req, res) => {
 app.put("/general/:id",(req, res) => {
   updateItemsFromStore(req, res);
 })
+app.delete("/general/:id",(req, res) => {
+  deleteItemsFromStore(req, res)
+})
+app.post("/general/",(req, res) => {
+  addItemsToStore(req, res)
+})
 
-//initialilzer
+//initializer
 app.listen(PORT, () => {
   // console.log(httpResponse);
   logger.info(`Server running on port ${ip.address()}:${PORT}`);

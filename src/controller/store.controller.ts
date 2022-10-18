@@ -60,3 +60,27 @@ export const updateItemsFromStore = (req: any, res: any) => {
     }
   );
 };
+
+export const deleteItemsFromStore = (req:Request,res:Response) =>{
+    logger.info(`${req.method} ${req.originalUrl}, Deleting Item from Store`);
+    database.query(QUERY.DELETE_ITEMS_FROM_STORE,['general_store',req.params.id],(error:any,results:any)=>{
+        if(results.affectedRows > 0){
+            res.send(new OK({ results }, "item deleted"))
+        } else{
+            res.send(new INTERNAL_SERVER_ERROR("unable to delete item"))
+        }
+    })
+}
+
+export const addItemsToStore = (req: Request, res: Response) =>{
+    logger.info(`${req.method} ${req.originalUrl},Adding item(s) to store`);
+    database.query(QUERY.ADD_ITEMS_TO_STORE,['general_store',...Object.values(req.body)],(error: Error, results: any )=>{
+        if(!results){
+            logger.error(error.message);
+            res.send(new INTERNAL_SERVER_ERROR("unable to add item"))
+        } else{
+            console.log(JSON.stringify(results));
+            res.send(new OK('created'))
+        }
+    })
+}

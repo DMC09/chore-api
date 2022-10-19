@@ -12,7 +12,7 @@ import {
 import { Request, Response } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 
-export const getItemsFromStore = (req: any, res: any) => {
+export const getItemsFromStore = (req: Request, res: Response,tableName:string) => {
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
   //Query the Database
   database.query(
@@ -29,7 +29,7 @@ export const getItemsFromStore = (req: any, res: any) => {
   );
 };
 
-export const updateItemsFromStore = (req: any, res: any) => {
+export const updateItemsFromStore = (req: Request, res: Response,tableName:string) => {
   console.log(req.body, "body");
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
 
@@ -61,7 +61,7 @@ export const updateItemsFromStore = (req: any, res: any) => {
   );
 };
 
-export const deleteItemsFromStore = (req:Request,res:Response) =>{
+export const deleteItemsFromStore = (req:Request,res:Response,tableName:string) =>{
     logger.info(`${req.method} ${req.originalUrl}, Deleting Item from Store`);
     database.query(QUERY.DELETE_ITEMS_FROM_STORE,['general_store',req.params.id],(error:any,results:any)=>{
         if(results.affectedRows > 0){
@@ -72,7 +72,7 @@ export const deleteItemsFromStore = (req:Request,res:Response) =>{
     })
 }
 
-export const addItemsToStore = (req: Request, res: Response) =>{
+export const addItemsToStore = (req: Request, res: Response,tableName:string) =>{
     logger.info(`${req.method} ${req.originalUrl},Adding item(s) to store`);
     database.query(QUERY.ADD_ITEMS_TO_STORE,['general_store',...Object.values(req.body)],(error: Error, results: any )=>{
         if(!results){
@@ -83,4 +83,9 @@ export const addItemsToStore = (req: Request, res: Response) =>{
             res.send(new OK('created'))
         }
     })
+}
+
+export const addStore = (req: Request, res: Response,tableName:string) =>{
+    logger.info(`${req.method} ${req.originalUrl},adding store`);
+    database.query(QUERY.CREATE_NEW_STORE)
 }

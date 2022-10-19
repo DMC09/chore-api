@@ -26,17 +26,17 @@ app.get("/", (req, res) => {
 });
 
 
-app.get("/general",(req, res) => {
-  getItemsFromStore(req, res);
+app.get("/:store",(req, res) => {
+  getItemsFromStore(req, res,req.params.store);
 })
-app.put("/general/:id",(req, res) => {
-  updateItemsFromStore(req, res);
+app.put("/:store/:id",(req, res) => {
+  updateItemsFromStore(req, res,req.params.store);
 })
-app.delete("/general/:id",(req, res) => {
-  deleteItemsFromStore(req, res)
+app.delete("/:store/:id",(req, res) => {
+  deleteItemsFromStore(req, res,req.params.store)
 })
-app.post("/general/",(req, res) => {
-  addItemsToStore(req, res)
+app.post("/:store/",(req, res) => {
+  addItemsToStore(req, res,req.params.store)
 })
 
 //initializer

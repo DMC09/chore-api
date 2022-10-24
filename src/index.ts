@@ -29,12 +29,22 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(httpResponse.Middleware);
 
-//generic test
+
+//generic routes
 app.get("/", (req, res) => {
-  //   const OkResponse = httpResponse.OkResponse;
-  //   const response = new OkResponse();
-  res.send(new OK());
+  res.send(new OK(process.env.NODE_ENV));
 });
+
+//env checks
+app.get("/check",(req, res)=>{
+  logger.info(process.env)
+  res.send(new OK('loggged env details'))
+})
+
+//404 handlers 
+app.all('/*', (req, res) => {
+  res.send(new INTERNAL_SERVER_ERROR('bad route'))
+})
 
 //store managment service
 app.post("/stores", (req, res) => {
@@ -60,6 +70,6 @@ app.post("/:store/", (req, res) => {
 
 //initializer
 app.listen(PORT, () => {
-  // console.log(httpResponse);
+logger.info(process.env.NODE_ENV)
   logger.info(`Server running on port ${ip.address()}:${PORT}`);
 });

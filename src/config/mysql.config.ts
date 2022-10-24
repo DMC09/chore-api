@@ -3,7 +3,8 @@ import mysql from "mysql";
 import dotenv from "dotenv";
 import * as fs from "fs";
 
-dotenv.config();
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 
 

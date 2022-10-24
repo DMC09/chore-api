@@ -1,0 +1,13 @@
+services:
+  nodeapp:
+    container_name: nodeappcontainer
+    build: .
+    image: nodeapp
+    volumes:
+      - $HOME/nodeapp:/code
+    ports:
+      - 3000:3000
+    expose:
+      - 3000
+
+    

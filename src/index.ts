@@ -41,10 +41,6 @@ app.get("/check",(req, res)=>{
   res.send(new OK('loggged env details'))
 })
 
-//404 handlers 
-app.all('/*', (req, res) => {
-  res.send(new INTERNAL_SERVER_ERROR('bad route'))
-})
 
 //store managment service
 app.post("/stores", (req, res) => {
@@ -55,18 +51,22 @@ app.delete("/stores", (req, res) => {
 });
 
 //individual stores
-app.get("/:store", (req, res) => {
+app.get("/stores/:store", (req, res) => {
   getItemsFromStore(req, res, req.params.store);
 });
-app.put("/:store/:id", (req, res) => {
+app.put("/stores/:store/:id", (req, res) => {
   updateItemsFromStore(req, res, req.params.store,req.params.id);
 });
-app.delete("/:store/:id", (req, res) => {
+app.delete("/stores/:store/:id", (req, res) => {
   deleteItemsFromStore(req, res, req.params.store,req.params.id);
 });
-app.post("/:store/", (req, res) => {
+app.post("/stores/:store/", (req, res) => {
   addItemsToStore(req, res, req.params.store);
 });
+
+app.all('/*', (req:Request, res:any) => {
+  logger.info(`${req.method} ${req.url} bad route hit! `)
+  res.send(new INTERNAL_SERVER_ERROR('Route does not exist!'))})
 
 //initializer
 app.listen(PORT, () => {

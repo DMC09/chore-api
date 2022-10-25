@@ -69,3 +69,5 @@ typings/
 
 .DS_Store
 .gcloudignore
+
+cloud_sql_proxy

@@ -12,20 +12,20 @@ import {
 import { Request, Response } from "express-serve-static-core";
 
 export const createStore = (req: express.Request, res: express.Response) => {
-  //extract vars
-  const { tableName, createdAt, url } = req.body;
+  //extract data
+  const { storeName, createdAt, url } = req.body;
 
   logger.info(`${req.method} ${req.originalUrl} creating new store`);
 
-  //create the table and if successful create an entry for in the master
+  //create the store and if successful create an entry for in the master
   database.query(
     QUERY.STORE.CREATE,
-    tableName,
+    storeName,
     (error: Error, results: any) => {
       if (!error) {
         database.query(
           QUERY.MASTER.CREATE_STORE,
-          ["master", tableName, createdAt, url],
+          ["master", storeName, createdAt, url],
           (error: Error, results: any) => {
             if (!error) {
               res.send(new OK("Store has been created"));
@@ -46,16 +46,16 @@ export const createStore = (req: express.Request, res: express.Response) => {
 
 export const deleteStore = (req: express.Request, res: express.Response) => {
 //extract the items
-  const {tableName,tableId} = req.body
+  const {storeName,storeId} = req.body
 
   logger.info(`${req.method} ${req.originalUrl} deleting store`);
-  //Drop the table and then delete it from the master
+  //Drop the store and then delete it from the master
   database.query(
     QUERY.STORE.DELETE,
-    tableName,
+    storeName,
     (error: Error, results: any) => {
       if (!error) {
-          database.query(QUERY.MASTER.DELETE_STORE,["master",tableId],(error: Error, results: any) => {
+          database.query(QUERY.MASTER.DELETE_STORE,["master",storeId],(error: Error, results: any) => {
               if(!error) {
                   res.send(new OK("store has been removed from database"));
             } else {

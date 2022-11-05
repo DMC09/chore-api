@@ -13,7 +13,7 @@ import { Request, Response } from "express-serve-static-core";
 
 export const createStore = (req: express.Request, res: express.Response) => {
   //extract data
-  const { storeName, createdAt, url } = req.body;
+  const { storeName, createdAt, imageUrl } = req.body;
 
   logger.info(`${req.method} ${req.originalUrl} creating new store`);
 
@@ -25,7 +25,7 @@ export const createStore = (req: express.Request, res: express.Response) => {
       if (!error) {
         database.query(
           QUERY.MASTER.CREATE_STORE,
-          ["master", storeName, createdAt, url],
+          ["master", storeName, createdAt, imageUrl],
           (error: Error, results: any) => {
             if (!error) {
               res.send(new OK("Store has been created"));

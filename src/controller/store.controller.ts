@@ -2,104 +2,49 @@ import logger from "../util/logger.js";
 import express from "express";
 import database from "../config/mysql.config.js";
 import QUERY from "../query/stores.query.js";
-import {OK,CREATED,BAD_REQUEST,NOT_FOUND,INTERNAL_SERVER_ERROR,} from "../domain/responses.js";
+import {
+  OK,
+  CREATED,
+  BAD_REQUEST,
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+} from "../domain/responses.js";
 import { Request, Response } from "express-serve-static-core";
 
-export const getItemsFromStore = (
-  req: express.Request,
-  res: express.Response,
-  storeName: string
-) => {
-  logger.info(`${req.method} ${req.originalUrl} fetching all items`);
-  //Query the Database
-  database.query(
-    QUERY.SELECT_ITEMS_FROM_STORE,
-    storeName,
-    (error: any, results: any) => {
-      if (!results) {
-        logger.error(error.message);
-        res.send(new OK("No Items Found"));
-      } else {
-        res.send(new OK({ results }, "items retrieved"));
-      }
-    }
-  );
-};
 
-export const updateItemsFromStore = (
-  req: express.Request,
-  res: express.Response,
-  storeName: string,
-  itemId:string
-) => {
-  console.log(req.body, "body");
-  logger.info(`${req.method} ${req.originalUrl} fetching all items`);
+export const createStore = (req: express.Request, res: express.Response) => {
+    const {tableName,createdAt,url} = req.body
+    logger.info(`${req.method} ${req.originalUrl} creating new store`);
+    database.query(QUERY.STORE.CREATE,tableName,(error:Error,results:any)=>{
+        if(!error){
+            console.log(results)
+            database.query(QUERY.MASTER.CREATE_STORE,["master",tableName,createdAt,url],(error:Error,results:any)=>{
+                if(!error){
+                    console.log(results)
+                    res.send(new OK('Store has been created'))
+                } else {
+                    logger.info(error)
+                    res.send(new INTERNAL_SERVER_ERROR('unable to add store to database'))
+                }
+            })
+        } else{
+            logger.info(error)
+        }
+    })
+}
+export const deleteStore = (req: express.Request, res: express.Response) => {
+    console.log(req.body)
+    logger.info(`${req.method} ${req.originalUrl} deleting store`);
+    database.query(QUERY.STORE.DELETE,...Object.values(req.body),(error:Error,results:any) => {
+        console.log(results,'these are the results')
+        if(!error) {
+            res.send(new OK('store has been removed from database'))
+            // database.query(QUERY.DELETE_STORE_FROM_MASTER,'stores_master',...Object.values(req.))
+        } else{
+            logger.info(error)
+            res.send(new INTERNAL_SERVER_ERROR('unable to remove store from database'))
+        }
+    })
 
-  //check for row matching the id in the DB
-  database.query(
-    QUERY.SELECT_ITEM_FROM_STORE,
-    [storeName, itemId],
-    (error: any, results: any, fields: any) => {
-      if (!results[0]) {
-        logger.info(error);
-        res.send(new NOT_FOUND(`No record found with id:${itemId}`));
-      } else {
-        //Perform update to record
-        logger.info(`${req.method} ${req.originalUrl}, updating store`);
-        database.query(
-          QUERY.UPDATE_ITEMS_FROM_STORE,
-          [storeName, ...Object.values(req.body), itemId],
-          (error: any, results: any, fields: any) => {
-            if (!error) {
-              res.send(new OK({ ...req.body }, "item updated"));
-            } else {
-              logger.error(error);
-              res.send(new INTERNAL_SERVER_ERROR("unable to update item"));
-            }
-          }
-        );
-      }
-    }
-  );
-};
-
-export const deleteItemsFromStore = (
-  req: express.Request,
-  res: express.Response,
-  storeName: string,
-  itemId: string
-) => {
-  logger.info(`${req.method} ${req.originalUrl}, Deleting Item from Store`);
-  database.query(
-    QUERY.DELETE_ITEMS_FROM_STORE,
-    [storeName, itemId],
-    (error: any, results: any) => {
-      if (results.affectedRows > 0) {
-        res.send(new OK({ results }, "item deleted"));
-      } else {
-        res.send(new INTERNAL_SERVER_ERROR("unable to delete item"));
-      }
-    }
-  );
-};
-
-export const addItemsToStore = (
-  req: express.Request,
-  res: express.Response,
-  storeName: string
-) => {
-  logger.info(`${req.method} ${req.originalUrl},Adding item(s) to store`);
-  database.query(
-    QUERY.ADD_ITEMS_TO_STORE,
-    [storeName, ...Object.values(req.body)],
-    (error: Error, results: any) => {
-      if (!results) {
-        logger.error(error.message);
-        res.send(new INTERNAL_SERVER_ERROR("unable to add item"));
-      } else {
-        console.log(JSON.stringify(results));
-        res.send(new OK("created"));
-      }
-    }
-  );
-};
+    // res.send(...Object.values(req.body))
+}

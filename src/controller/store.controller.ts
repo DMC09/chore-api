@@ -11,40 +11,68 @@ import {
 } from "../domain/responses.js";
 import { Request, Response } from "express-serve-static-core";
 
-
 export const createStore = (req: express.Request, res: express.Response) => {
-    const {tableName,createdAt,url} = req.body
-    logger.info(`${req.method} ${req.originalUrl} creating new store`);
-    database.query(QUERY.STORE.CREATE,tableName,(error:Error,results:any)=>{
-        if(!error){
-            console.log(results)
-            database.query(QUERY.MASTER.CREATE_STORE,["master",tableName,createdAt,url],(error:Error,results:any)=>{
-                if(!error){
-                    console.log(results)
-                    res.send(new OK('Store has been created'))
-                } else {
-                    logger.info(error)
-                    res.send(new INTERNAL_SERVER_ERROR('unable to add store to database'))
-                }
-            })
-        } else{
-            logger.info(error)
-        }
-    })
-}
-export const deleteStore = (req: express.Request, res: express.Response) => {
-    console.log(req.body)
-    logger.info(`${req.method} ${req.originalUrl} deleting store`);
-    database.query(QUERY.STORE.DELETE,...Object.values(req.body),(error:Error,results:any) => {
-        console.log(results,'these are the results')
-        if(!error) {
-            res.send(new OK('store has been removed from database'))
-            // database.query(QUERY.DELETE_STORE_FROM_MASTER,'stores_master',...Object.values(req.))
-        } else{
-            logger.info(error)
-            res.send(new INTERNAL_SERVER_ERROR('unable to remove store from database'))
-        }
-    })
+  //extract vars
+  const { tableName, createdAt, url } = req.body;
 
-    // res.send(...Object.values(req.body))
-}
+  logger.info(`${req.method} ${req.originalUrl} creating new store`);
+
+  //create the table and if successful create an entry for in the master
+  database.query(
+    QUERY.STORE.CREATE,
+    tableName,
+    (error: Error, results: any) => {
+      if (!error) {
+        database.query(
+          QUERY.MASTER.CREATE_STORE,
+          ["master", tableName, createdAt, url],
+          (error: Error, results: any) => {
+            if (!error) {
+              res.send(new OK("Store has been created"));
+            } else {
+              logger.info(error);
+              res.send(
+                new INTERNAL_SERVER_ERROR("unable to add store to database")
+              );
+            }
+          }
+        );
+      } else {
+        logger.info(error);
+      }
+    }
+  );
+};
+
+export const deleteStore = (req: express.Request, res: express.Response) => {
+//extract the items
+  const {tableName,tableId} = req.body
+
+  logger.info(`${req.method} ${req.originalUrl} deleting store`);
+  //Drop the table and then delete it from the master
+  database.query(
+    QUERY.STORE.DELETE,
+    tableName,
+    (error: Error, results: any) => {
+      if (!error) {
+          database.query(QUERY.MASTER.DELETE_STORE,["master",tableId],(error: Error, results: any) => {
+              if(!error) {
+                  res.send(new OK("store has been removed from database"));
+            } else {
+                logger.info(error);
+                res.send(
+                  new INTERNAL_SERVER_ERROR("unable to remove store from database")
+                );
+            }
+        })
+      } else {
+        logger.info(error);
+        res.send(
+          new INTERNAL_SERVER_ERROR("unable to remove store from database")
+        );
+      }
+    }
+  );
+
+  // res.send(...Object.values(req.body))
+};

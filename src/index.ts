@@ -17,8 +17,8 @@ import {
   updateItemsFromStore,
   deleteItemsFromStore,
   addItemsToStore,
-} from "./controller/store.controller.js";
-import {createStore, deleteStore} from "./controller/createStore.controller.js"
+} from "./controller/storeItem.controller.js";
+import {createStore, deleteStore} from "./controller/store.controller.js"
 
 //config
 dotenv.config();

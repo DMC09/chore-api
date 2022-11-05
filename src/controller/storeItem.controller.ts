@@ -32,9 +32,7 @@ export const updateItemsFromStore = (
   storeName: string,
   itemId:string
 ) => {
-  console.log(req.body, "body");
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
-
   //check for row matching the id in the DB
   database.query(
     QUERY.STORE.GET_ITEM,
@@ -48,9 +46,10 @@ export const updateItemsFromStore = (
         logger.info(`${req.method} ${req.originalUrl}, updating store`);
         database.query(
           QUERY.STORE.UPDATE_ITEMS,
-          [storeName, ...Object.values(req.body), itemId],
+          [storeName, req.body.itemName,req.body.itemQuantity,req.body.itemNotes,req.body.url, itemId], // change to req.body.
           (error: any, results: any, fields: any) => {
             if (!error) {
+              console.log(results)
               res.send(new OK({ ...req.body }, "item updated"));
             } else {
               logger.error(error);
@@ -88,18 +87,35 @@ export const addItemsToStore = (
   res: express.Response,
   storeName: string
 ) => {
-  logger.info(`${req.method} ${req.originalUrl},Adding item(s) to store`);
+//extract the data
+const {itemName,itemQuantity,itemNotes,imageUrl,storeId} = req.body
+  logger.info(`${req.method} ${req.originalUrl} Adding item(s) to store`);
+//add Items to store
   database.query(
     QUERY.STORE.ADD_ITEMS,
-    [storeName, ...Object.values(req.body)],
+    [storeName,itemName,itemQuantity,itemNotes,imageUrl],
     (error: Error, results: any) => {
       if (!results) {
-        logger.error(error.message);
+        logger.error(error.message,'error after adding ');
         res.send(new INTERNAL_SERVER_ERROR("unable to add item"));
       } else {
-        console.log(JSON.stringify(results));
-        res.send(new OK("created"));
-      }
+        //if successful get the count of the active items and update the master
+        // console.log(results.insertId,'id');
+          database.query(QUERY.STORE.GET_COUNT,storeName,(error:any, results: any)=>{
+            if(!error) {
+              const count = results[0].activeItemsCount
+              database.query(QUERY.MASTER.UPDATE_STORE,["master",count,storeId],(error: any, results: any)=>{
+                if(!error) {
+                  res.send(new OK("added item and updated count"));
+                } else {
+                  logger.info(error,'after updated master');
+                }
+              })
+            } else {
+              logger.info(error,'after getting the count');
+            }
+          })
+       }
     }
   );
 };

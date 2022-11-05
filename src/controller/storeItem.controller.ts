@@ -63,7 +63,28 @@ export const updateItemsFromStore = (
           (error: any, results: any, fields: any) => {
             if (!error) {
               console.log(results);
-              res.send(new OK({ ...req.body }, "item updated"));
+              //get the active item count
+              database.query(
+                QUERY.STORE.GET_COUNT,
+                storeName,
+                (error: any, results: any) => {
+                  if (!error) {
+                    const count = results[0].activeItemsCount;
+                    database.query(
+                      //update the master
+                      QUERY.MASTER.UPDATE_STORE,
+                      ["master", count, req.body.storeId],
+                      (error: any, results: any) => {
+                        if (!error) {
+                          res.send(new OK("item updated"));
+                        } else {
+                          logger.info(error);
+                        }
+                      }
+                    );
+                  }
+                }
+              );
             } else {
               logger.error(error);
               res.send(new INTERNAL_SERVER_ERROR("unable to update item"));

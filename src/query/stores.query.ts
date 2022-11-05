@@ -9,7 +9,7 @@ const QUERY = {
     GET_ITEMS: "SELECT * FROM ?? ORDER BY added_at ASC LIMIT 100",
     GET_COUNT: "SELECT COUNT(*) AS activeItemsCount FROM ?? WHERE item_quantity > 0",
     GET_ITEM: "SELECT * from ?? WHERE item_id=?",
-    CREATE:"CREATE TABLE ?? (item_id int unsigned NOT NULL AUTO_INCREMENT,item_name varchar(50) DEFAULT NULL,item_quantity int DEFAULT NULL,item_notes varchar(300) DEFAULT NULL,added_a int DEFAULT NULL,image_url varchar(300) DEFAULT NULL,PRIMARY KEY (`item_id`))",
+    CREATE:"CREATE TABLE ?? (item_id int unsigned NOT NULL AUTO_INCREMENT,item_name varchar(50) DEFAULT NULL,item_quantity int DEFAULT NULL,item_notes varchar(300) DEFAULT NULL,added_at int DEFAULT NULL,image_url varchar(300) DEFAULT NULL,PRIMARY KEY (`item_id`))",
     ADD_ITEMS:
       "INSERT INTO ?? (item_name,item_quantity,item_notes,added_at,image_url) VALUES (?,?,?,UNIX_TIMESTAMP(),?)",
     UPDATE_ITEMS:

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { application } from "express";
 import ip from "ip";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -18,7 +18,7 @@ import {
   deleteItemsFromStore,
   addItemsToStore,
 } from "./controller/storeItem.controller.js";
-import {createStore, deleteStore} from "./controller/store.controller.js"
+import {getAllStores,createStore, deleteStore} from "./controller/store.controller.js"
 
 //config
 dotenv.config();
@@ -42,7 +42,10 @@ app.get("/check",(req, res)=>{
 })
 
 
-//store managment service
+//store management service
+app.get("/stores", (req: express.Request, res:express.Response)=>[
+  getAllStores(req, res)
+])
 app.post("/stores", (req, res) => {
   createStore(req, res)
 });

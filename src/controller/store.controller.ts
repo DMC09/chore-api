@@ -11,6 +11,19 @@ import {
 } from "../domain/responses.js";
 import { Request, Response } from "express-serve-static-core";
 
+
+export const getAllStores = (req: express.Request, res: express.Response) =>{
+  logger.info(`${req.method} ${req.originalUrl} getting stores`);
+  database.query(QUERY.MASTER.GET_STORES,["master"],(error: any,results: any) =>{
+    if(!error){
+      logger.info(error);
+      res.send(new OK({ results }, "stores retrieved"));
+    } else{
+      res.send(new OK("No stores found"));
+    }
+  })
+}
+
 export const createStore = (req: express.Request, res: express.Response) => {
   //extract data
   const { storeName, createdAt, imageUrl } = req.body;

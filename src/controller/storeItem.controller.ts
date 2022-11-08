@@ -12,8 +12,8 @@ import {
 import { Request, Response } from "express-serve-static-core";
 
 export const getItemsFromStore = (
-  req: express.Request,
-  res: express.Response,
+  req: Request,
+  res: Response,
   storeName: string
 ) => {
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);

@@ -1,6 +1,6 @@
 const QUERY = {
     MASTER : {
-     CREATE_STORE: "INSERT INTO ?? (store_name,last_updated,created_at,image_url) VALUES (?,UNIX_TIMESTAMP(),?,?)",
+     CREATE_STORE: "INSERT INTO ?? (store_name,last_updated,created_at,image_url) VALUES (?,UNIX_TIMESTAMP(),UNIX_TIMESTAMP(),?)",
      GET_STORES: "SELECT * FROM ??",
      UPDATE_STORE: "UPDATE ?? SET store_item_count = ?, last_updated = UNIX_TIMESTAMP() WHERE store_id = ?",
      DELETE_STORE: "DELETE FROM ?? where store_id = ?",

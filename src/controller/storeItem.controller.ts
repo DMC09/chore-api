@@ -26,7 +26,7 @@ export const getItemsFromStore = (
         logger.error(error.message);
         res.send(new OK("No Items Found"));
       } else {
-        res.send(new OK({ results }, "items retrieved"));
+        res.send(new OK(results , "items retrieved"));
       }
     }
   );

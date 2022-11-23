@@ -17,7 +17,7 @@ export const getAllStores = (req: express.Request, res: express.Response) =>{
   database.query(QUERY.MASTER.GET_STORES,["master"],(error: any,results: any) =>{
     if(!error){
       logger.info(error);
-      res.send(new OK({ results }, "stores retrieved"));
+      res.send(new OK( results , "stores retrieved"));
     } else{
       res.send(new OK("No stores found"));
     }
@@ -26,7 +26,7 @@ export const getAllStores = (req: express.Request, res: express.Response) =>{
 
 export const createStore = (req: express.Request, res: express.Response) => {
   //extract data
-  const { storeName, createdAt, imageUrl } = req.body;
+  const { storeName, imageUrl } = req.body;
 
   logger.info(`${req.method} ${req.originalUrl} creating new store`);
 
@@ -38,7 +38,7 @@ export const createStore = (req: express.Request, res: express.Response) => {
       if (!error) {
         database.query(
           QUERY.MASTER.CREATE_STORE,
-          ["master", storeName, createdAt, imageUrl],
+          ["master", storeName, imageUrl],
           (error: Error, results: any) => {
             if (!error) {
               res.send(new OK("Store has been created"));

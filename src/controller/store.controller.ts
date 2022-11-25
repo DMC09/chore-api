@@ -17,13 +17,33 @@ const prisma = new PrismaClient({
 
 export const getAllStores = async(req: express.Request, res: express.Response) => {
   logger.info(`${req.method} ${req.originalUrl} getting stores`);
-  const allStoresData = await prisma.stores.findMany()
-    res.send(new OK(allStoresData))
+  // const allStoresData = await prisma.stores.findMany().catch((err) => {
+  //   console.error(err);
+  // })
+  // .finally(async () => {
+  //   await prisma.$disconnect();
+  // });
+
+  console.log(Date.now(),'the date')
+
+  const storeToAdd= await prisma.stores.create({data:{
+    name: "Kroger",
+    lastUpdated: 0,
+    createdAt: Date.now(),
+    url:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTslpsKZJOtZw6v3xf7vyilLdX7bIxGh9Z4lapdkKVWA&s"
+  }}).catch(err => {console.error(err);}).finally(async () => {
+    await prisma.$disconnect
+  })
+
+
+
+    res.send(new OK(storeToAdd))
 };
 
-export const createStore = (req: express.Request, res: express.Response) => {
+export const addStore = async (req: express.Request, res: express.Response) => {
   //extract data
   const { storeName, imageUrl } = req.body;
+  
 
   logger.info(`${req.method} ${req.originalUrl} creating new store`);
 

@@ -18,7 +18,7 @@ import {
   deleteItemsFromStore,
   addItemsToStore,
 } from "./controller/storeItem.controller.js";
-import {getAllStores,createStore, deleteStore} from "./controller/store.controller.js"
+import {getAllStores,addStore, deleteStore} from "./controller/store.controller.js"
 
 //config
 dotenv.config();
@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
 //env checks
 app.get("/check",(req, res)=>{
   logger.info(process.env)
-  res.send(new OK('loggged env details'))
+  res.send(new OK('logged env details'))
 })
 
 
@@ -47,7 +47,7 @@ app.get("/stores", (req: express.Request, res:express.Response)=>[
   getAllStores(req, res)
 ])
 app.post("/stores", (req, res) => {
-  createStore(req, res)
+  addStore(req, res)
 });
 app.delete("/stores", (req, res) => {
   deleteStore(req, res)
@@ -67,9 +67,14 @@ app.post("/stores/:store/", (req, res) => {
   addItemsToStore(req, res, req.params.store);
 });
 
+
+
+
+
 app.all('/*', (req:Request, res:any) => {
   logger.info(`${req.method} ${req.url} bad route hit! `)
   res.send(new INTERNAL_SERVER_ERROR('Route does not exist!'))})
+
 
 //initializer
 app.listen(PORT, () => {

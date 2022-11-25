@@ -57,7 +57,7 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+.env.*
 
 # next.js build output
 .next
@@ -66,8 +66,7 @@ typings/
 *.der
 *.key
 *.pem
-
+.env
 .DS_Store
-.gcloudignore
 
-cloud_sql_proxy
+prisma/migrations

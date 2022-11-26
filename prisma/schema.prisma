@@ -14,8 +14,8 @@ model Stores {
   storeId     Int    @id @default(autoincrement())
   name        String @unique
   quantity    Int    @default(0)
-  lastUpdated String
-  createdAt   String
+  lastUpdated Int
+  createdAt   Int
   url         String
 }
 

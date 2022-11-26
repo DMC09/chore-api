@@ -49,8 +49,8 @@ app.get("/stores", (req: express.Request, res:express.Response)=>[
 app.post("/stores", (req, res) => {
   addStore(req, res)
 });
-app.delete("/stores", (req, res) => {
-  deleteStore(req, res)
+app.delete("/stores/:id", (req, res) => {
+  deleteStore(req, res, +req.params.id)
 });
 
 //individual stores

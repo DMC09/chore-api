@@ -1,6 +1,6 @@
 import logger from "../util/logger.js";
 import express from "express";
-import database from "../config/mysql.config.js";
+
 import QUERY from "../query/stores.query.js";
 import {
   OK,
@@ -10,177 +10,92 @@ import {
   INTERNAL_SERVER_ERROR,
 } from "../domain/responses.js";
 import { Request, Response } from "express-serve-static-core";
+import { PrismaClient } from "@prisma/client";
+import moment from "moment";
+import { rmSync } from "fs";
 
-export const getItemsFromStore = (
+const prisma = new PrismaClient({
+  log: ["warn", "error"],
+});
+
+export const getItemsFromStore = async (
   req: Request,
   res: Response,
-  storeName: string
+  storeId: number
 ) => {
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
   //Query the Database
-  database.query(
-    QUERY.STORE.GET_ITEMS,
-    storeName,
-    (error: any, results: any) => {
-      if (!results) {
-        logger.error(error.message);
-        res.send(new OK("No Items Found"));
-      } else {
-        res.send(new OK(results , "items retrieved"));
-      }
-    }
-  );
+  const itemsFromStore = await prisma.storeItems.findMany({
+    where: {
+      storeId,
+    },
+  });
+
+  res.send(new OK(itemsFromStore, "Items from store"));
 };
 
-export const updateItemsFromStore = (
+export const updateItemsFromStore = async (
   req: express.Request,
   res: express.Response,
-  storeName: string,
-  itemId: string
+  storeId: number,
+  itemId: number
 ) => {
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
   //check for row matching the id in the DB
-  database.query(
-    QUERY.STORE.GET_ITEM,
-    [storeName, itemId],
-    (error: any, results: any, fields: any) => {
-      if (!results[0]) {
-        logger.info(error);
-        res.send(new NOT_FOUND(`No record found with id:${itemId}`));
-      } else {
-        //Perform update to record
-        logger.info(`${req.method} ${req.originalUrl}, updating store`);
-        database.query(
-          QUERY.STORE.UPDATE_ITEMS,
-          [
-            storeName,
-            req.body.itemName,
-            req.body.itemQuantity,
-            req.body.itemNotes,
-            req.body.url,
-            itemId,
-          ],
-          (error: any, results: any, fields: any) => {
-            if (!error) {
-              console.log(results);
-              //get the active item count
-              database.query(
-                QUERY.STORE.GET_COUNT,
-                storeName,
-                (error: any, results: any) => {
-                  if (!error) {
-                    const count = results[0].activeItemsCount;
-                    database.query(
-                      //update the master
-                      QUERY.MASTER.UPDATE_STORE,
-                      ["master", count, req.body.storeId],
-                      (error: any, results: any) => {
-                        if (!error) {
-                          res.send(new OK("item updated"));
-                        } else {
-                          logger.info(error);
-                        }
-                      }
-                    );
-                  }
-                }
-              );
-            } else {
-              logger.error(error);
-              res.send(new INTERNAL_SERVER_ERROR("unable to update item"));
-            }
-          }
-        );
-      }
-    }
-  );
+
+
+
+
+  const itemsToUpdate = await prisma.storeItems.updateMany({
+    where: {
+      storeId
+    },
+    data: {
+      // data to update
+    },
+  })
+  
+
+  res.send(new OK("Items updated"))
 };
 
-export const deleteItemsFromStore = (
+export const deleteItemsFromStore = async (
   req: express.Request,
   res: express.Response,
-  storeName: string,
-  itemId: string
+  storeId: number,
+  itemId:number
 ) => {
-  const storeId = req.body.storeId;
   logger.info(`${req.method} ${req.originalUrl}, Deleting Item from Store`);
-  database.query(
-    QUERY.STORE.DELETE_ITEMS,
-    [storeName, itemId],
-    (error: any, results: any) => {
-      if (results.affectedRows > 0) {
-        database.query(
-          QUERY.STORE.GET_COUNT,
-          storeName,
-          (error: any, results: any) => {
-            if (!error) {
-              const count = results[0].activeItemsCount;
-              database.query(
-                QUERY.MASTER.UPDATE_STORE,
-                ["master", count, storeId],
-                (err: any, result: any) => {
-                  if (!error) {
-                    res.send(new OK("item deleted"));
-                  } else {
-                    logger.info(error);
-                  }
-                }
-              );
-            } else {
-              logger.info(error, "after getting count");
-            }
-          }
-        );
-      } else {
-        logger.info(error, "after deleting items");
-        res.send(new INTERNAL_SERVER_ERROR("unable to delete item"));
-      }
-    }
-  );
+  const itemsToDelete = await prisma.storeItems.deleteMany({
+    where: {
+      storeId,
+      itemId
+    },
+  });
+
+  res.send(new OK(itemsToDelete,"Items have been deleted"))
 };
 
-export const addItemsToStore = (
+export const addItemsToStore = async (
   req: express.Request,
   res: express.Response,
-  storeName: string
+  storeId: number
 ) => {
   //extract the data
-  const { itemName, itemQuantity, itemNotes, imageUrl, storeId } = req.body;
+  const { itemName, itemNotes, quantity, url } = req.body;
+  const currentTimeInSeconds = moment().unix();
   logger.info(`${req.method} ${req.originalUrl} Adding item(s) to store`);
   //add Items to store
-  database.query(
-    QUERY.STORE.ADD_ITEMS,
-    [storeName, itemName, itemQuantity, itemNotes, imageUrl],
-    (error: Error, results: any) => {
-      if (!results) {
-        logger.error(error.message, "error after adding ");
-        res.send(new INTERNAL_SERVER_ERROR("unable to add item"));
-      } else {
-        //if successful get the count of the active items and update the master
-        // console.log(results.insertId,'id');
-        database.query(
-          QUERY.STORE.GET_COUNT,
-          storeName,
-          (error: any, results: any) => {
-            if (!error) {
-              const count = results[0].activeItemsCount;
-              database.query(
-                QUERY.MASTER.UPDATE_STORE,
-                ["master", count, storeId],
-                (error: any, results: any) => {
-                  if (!error) {
-                    res.send(new OK("added item and updated count"));
-                  } else {
-                    logger.info(error, "after updated master");
-                  }
-                }
-              );
-            } else {
-              logger.info(error, "after getting the count");
-            }
-          }
-        );
-      }
-    }
-  );
+
+  const itemToAdd = await prisma.storeItems.create({
+    data: {
+      storeId,
+      itemName,
+      itemNotes,
+      quantity,
+      addedAt: currentTimeInSeconds,
+    },
+  });
+
+  res.send(new OK(itemToAdd, "Item Added"));
 };

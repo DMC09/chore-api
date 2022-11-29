@@ -1,6 +1,5 @@
 import logger from "../util/logger.js";
 import express from "express";
-import database from "../config/mysql.config.js";
 import QUERY from "../query/stores.query.js";
 import {
   OK,
@@ -10,82 +9,73 @@ import {
   INTERNAL_SERVER_ERROR,
 } from "../domain/responses.js";
 import { Request, Response } from "express-serve-static-core";
+import { PrismaClient } from "@prisma/client";
+import moment from "moment";
 
+const prisma = new PrismaClient({
+  log: ["query", "info", "warn", "error"],
+});
 
-export const getAllStores = (req: express.Request, res: express.Response) =>{
+export const getAllStores = async (
+  req: express.Request,
+  res: express.Response
+) => {
   logger.info(`${req.method} ${req.originalUrl} getting stores`);
-  database.query(QUERY.MASTER.GET_STORES,["master"],(error: any,results: any) =>{
-    if(!error){
-      logger.info(error);
-      res.send(new OK( results , "stores retrieved"));
-    } else{
-      res.send(new OK("No stores found"));
-    }
-  })
-}
+  const allStoresData = await prisma.stores
+    .findMany()
+    .catch((err) => {
+      console.error(err);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
 
-export const createStore = (req: express.Request, res: express.Response) => {
-  //extract data
-  const { storeName, imageUrl } = req.body;
+  res.send(new OK(allStoresData));
+};
+
+export const addStore = async (req: express.Request, res: express.Response) => {
+  //extract name and url from the request body
+  const { storeName, url } = req.body;
 
   logger.info(`${req.method} ${req.originalUrl} creating new store`);
 
-  //create the store and if successful create an entry for in the master
-  database.query(
-    QUERY.STORE.CREATE,
-    storeName,
-    (error: Error, results: any) => {
-      if (!error) {
-        database.query(
-          QUERY.MASTER.CREATE_STORE,
-          ["master", storeName, imageUrl],
-          (error: Error, results: any) => {
-            if (!error) {
-              res.send(new OK("Store has been created"));
-            } else {
-              logger.info(error);
-              res.send(
-                new INTERNAL_SERVER_ERROR("unable to add store to database")
-              );
-            }
-          }
-        );
-      } else {
-        logger.info(error);
-      }
-    }
-  );
+  console.log(Date.now(), "the date");
+  const currentTimeInSeconds = moment().unix();
+
+  const storeToAdd = await prisma.stores
+    .create({
+      data: {
+        storeName,
+        lastUpdated: 0,
+        createdAt: currentTimeInSeconds,
+        url,
+      },
+    })
+    .catch((err) => {
+      console.error(err);
+    })
+    .finally(async () => {
+      await prisma.$disconnect;
+    });
+
+  res.send(new OK(storeToAdd));
 };
 
-export const deleteStore = (req: express.Request, res: express.Response) => {
-//extract the items
-  const {storeName,storeId} = req.body
+export const deleteStore = async (
+  req: express.Request,
+  res: express.Response,
+  storeId: number
+) => {
+  console.log(storeId);
 
   logger.info(`${req.method} ${req.originalUrl} deleting store`);
-  //Drop the store and then delete it from the master
-  database.query(
-    QUERY.STORE.DELETE,
-    storeName,
-    (error: Error, results: any) => {
-      if (!error) {
-          database.query(QUERY.MASTER.DELETE_STORE,["master",storeId],(error: Error, results: any) => {
-              if(!error) {
-                  res.send(new OK("store has been removed from database"));
-            } else {
-                logger.info(error);
-                res.send(
-                  new INTERNAL_SERVER_ERROR("unable to remove store from database")
-                );
-            }
-        })
-      } else {
-        logger.info(error);
-        res.send(
-          new INTERNAL_SERVER_ERROR("unable to remove store from database")
-        );
-      }
-    }
-  );
+
+  const storeToDelete = await prisma.stores.delete({
+    where: {
+      storeId
+    },
+  });
 
   // res.send(...Object.values(req.body))
+  res.send(new OK(storeToDelete));
 };

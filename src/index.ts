@@ -18,7 +18,7 @@ import {
   deleteItemsFromStore,
   addItemsToStore,
 } from "./controller/storeItem.controller.js";
-import {getAllStores,createStore, deleteStore} from "./controller/store.controller.js"
+import {getAllStores,addStore, deleteStore} from "./controller/store.controller.js"
 
 //config
 dotenv.config();
@@ -38,38 +38,43 @@ app.get("/", (req, res) => {
 //env checks
 app.get("/check",(req, res)=>{
   logger.info(process.env)
-  res.send(new OK('loggged env details'))
+  res.send(new OK('logged env details'))
 })
 
 
-//store management service
+//CRD for Master Tables
 app.get("/stores", (req: express.Request, res:express.Response)=>[
   getAllStores(req, res)
 ])
 app.post("/stores", (req, res) => {
-  createStore(req, res)
+  addStore(req, res)
 });
-app.delete("/stores", (req, res) => {
-  deleteStore(req, res)
+app.delete("/stores/:storeId", (req, res) => {
+  deleteStore(req, res, +req.params.storeId)
 });
 
-//individual stores
-app.get("/stores/:store", (req, res) => {
-  getItemsFromStore(req, res, req.params.store);
+//
+app.get("/stores/:storeId/", (req, res) => {
+  getItemsFromStore(req, res, +req.params.storeId);
 });
-app.put("/stores/:store/:id", (req, res) => {
-  updateItemsFromStore(req, res, req.params.store,req.params.id);
+app.put("/stores/:storeId/:itemid", (req, res) => {
+  updateItemsFromStore(req, res,+req.params.storeId,+req.params.itemid);
 });
-app.delete("/stores/:store/:id", (req, res) => {
-  deleteItemsFromStore(req, res, req.params.store,req.params.id);
+app.delete("/stores/:storeId/:itemId", (req, res) => {
+  deleteItemsFromStore(req, res,+req.params.storeId,+req.params.itemId);
 });
-app.post("/stores/:store/", (req, res) => {
-  addItemsToStore(req, res, req.params.store);
+app.post("/stores/:storeId/", (req, res) => {
+  addItemsToStore(req, res, +req.params.storeId);
 });
+
+
+
+
 
 app.all('/*', (req:Request, res:any) => {
   logger.info(`${req.method} ${req.url} bad route hit! `)
   res.send(new INTERNAL_SERVER_ERROR('Route does not exist!'))})
+
 
 //initializer
 app.listen(PORT, () => {

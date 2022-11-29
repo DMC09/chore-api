@@ -35,7 +35,7 @@ export const getAllStores = async (
 
 export const addStore = async (req: express.Request, res: express.Response) => {
   //extract name and url from the request body
-  const { name, url } = req.body;
+  const { storeName, url } = req.body;
 
   logger.info(`${req.method} ${req.originalUrl} creating new store`);
 
@@ -45,7 +45,7 @@ export const addStore = async (req: express.Request, res: express.Response) => {
   const storeToAdd = await prisma.stores
     .create({
       data: {
-        name,
+        storeName,
         lastUpdated: 0,
         createdAt: currentTimeInSeconds,
         url,

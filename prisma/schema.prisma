@@ -12,7 +12,7 @@ datasource db {
 
 model Stores {
   storeId     Int    @id @default(autoincrement())
-  name        String @unique
+  storeName   String @unique
   quantity    Int    @default(0)
   lastUpdated Int
   createdAt   Int
@@ -21,9 +21,9 @@ model Stores {
 
 model StoreItems {
   itemId    Int    @id @default(autoincrement())
-  storeId   Int    
-  itemName  String @unique 
+  storeId   Int
+  itemName  String @unique
   itemNotes String
   quantity  Int
-  addedAt   String
+  addedAt   Int
 }

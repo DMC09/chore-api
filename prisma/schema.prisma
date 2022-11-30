@@ -27,5 +27,6 @@ model StoreItems {
   itemNotes     String
   quantity      Int
   addedAt       Int
+  url           String
   Store        Stores? @relation(fields: [storeId], references: [storeId])
 }

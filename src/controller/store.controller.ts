@@ -22,7 +22,11 @@ export const getAllStores = async (
 ) => {
   logger.info(`${req.method} ${req.originalUrl} getting stores`);
   const allStoresData = await prisma.stores
-    .findMany()
+    .findMany({
+      include:{
+        storeItems:true
+      }
+    })
     .catch((err) => {
       console.error(err);
     })

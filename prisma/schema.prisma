@@ -11,19 +11,21 @@ datasource db {
 }
 
 model Stores {
-  storeId     Int    @id @default(autoincrement())
-  storeName   String @unique
-  quantity    Int    @default(0)
+  storeId     Int          @id @default(autoincrement())
+  storeName   String       @unique
+  quantity    Int          @default(0)
   lastUpdated Int
   createdAt   Int
   url         String
+  storeItems  StoreItems[]
 }
 
 model StoreItems {
-  itemId    Int    @id @default(autoincrement())
-  storeId   Int
-  itemName  String @unique
-  itemNotes String
-  quantity  Int
-  addedAt   Int
+  itemId        Int     @id @default(autoincrement())
+  storeId       Int
+  itemName      String  @unique
+  itemNotes     String
+  quantity      Int
+  addedAt       Int
+  Store        Stores? @relation(fields: [storeId], references: [storeId])
 }

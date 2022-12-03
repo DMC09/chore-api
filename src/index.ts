@@ -18,7 +18,7 @@ import {
   deleteItemsFromStore,
   addItemsToStore,
 } from "./controller/storeItem.controller.js";
-import {getAllStores,addStore, deleteStore} from "./controller/store.controller.js"
+import {getAllStoresAndStoreItems,addStore, deleteStore} from "./controller/store.controller.js"
 
 //config
 dotenv.config();
@@ -44,7 +44,7 @@ app.get("/check",(req, res)=>{
 
 //CRD for Master Tables
 app.get("/stores", (req: express.Request, res:express.Response)=>[
-  getAllStores(req, res)
+  getAllStoresAndStoreItems(req, res)
 ])
 app.post("/stores", (req, res) => {
   addStore(req, res)
@@ -54,16 +54,16 @@ app.delete("/stores/:storeId", (req, res) => {
 });
 
 //
-app.get("/stores/:storeId/", (req, res) => {
+app.get("/stores/:storeId/items", (req, res) => {
   getItemsFromStore(req, res, +req.params.storeId);
 });
-app.put("/stores/:storeId/:itemid", (req, res) => {
-  updateItemsFromStore(req, res,+req.params.storeId,+req.params.itemid);
+app.put("/stores/:storeId/items/:itemId", (req, res) => {
+  updateItemsFromStore(req, res,+req.params.storeId,+req.params.itemId);
 });
-app.delete("/stores/:storeId/:itemId", (req, res) => {
+app.delete("/stores/:storeId/items/:itemId", (req, res) => {
   deleteItemsFromStore(req, res,+req.params.storeId,+req.params.itemId);
 });
-app.post("/stores/:storeId/", (req, res) => {
+app.post("/stores/:storeId/items", (req, res) => {
   addItemsToStore(req, res, +req.params.storeId);
 });
 

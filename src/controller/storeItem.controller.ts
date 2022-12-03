@@ -24,12 +24,32 @@ export const getItemsFromStore = async (
   storeId: number
 ) => {
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
-  //Query the Database
-  const itemsFromStore = await prisma.storeItems.findMany({
-    where: {
-      storeId,
-    },
-  });
+  //check if store exists
+  await prisma.stores
+    .findFirstOrThrow({
+      where: { storeId },
+    })
+    .catch(async (err) => {
+      await res.send(new NOT_FOUND("Store not found"));
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+
+  //Query the database
+  const itemsFromStore = await prisma.storeItems
+    .findMany({
+      where: {
+        storeId,
+      },
+    })
+    .catch((err) => {
+      console.error(err);
+      res.send(new BAD_REQUEST(err));
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
 
   res.send(new OK(itemsFromStore, "Items from store"));
 };
@@ -41,39 +61,119 @@ export const updateItemsFromStore = async (
   itemId: number
 ) => {
   logger.info(`${req.method} ${req.originalUrl} fetching all items`);
-  //check for row matching the id in the DB
 
+  const { itemName, itemQuantity, itemNotes, imageUrl } = req.body;
+  const currentTimeInSeconds = moment().unix();
+  // check if the store exists first
+  await prisma.storeItems
+    .findFirstOrThrow({
+      where: { storeId, itemId },
+    })
+    .catch(async (err) => {
+      console.log(err);
+      await res.send(new NOT_FOUND(err));
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
 
+  const itemsToUpdate = await prisma.storeItems
+    .updateMany({
+      where: {
+        storeId,
+        itemId,
+      },
+      data: {
+        itemName,
+        itemNotes,
+        itemQuantity,
+        imageUrl,
+      },
+    })
+    .catch(async (err) => {
+      console.error(err);
+      await res.send(new BAD_REQUEST(err));
+    })
+    .finally(async () => {
+      const currentStoreQuantity = await prisma.storeItems.count({
+        where: {
+          storeId,
+          itemQuantity: {
+            gt: 0,
+          },
+        },
+      });
 
+      await prisma.stores
+        .update({
+          where: {
+            storeId,
+          },
+          data: {
+            lastUpdated: currentTimeInSeconds,
+            quantity: currentStoreQuantity,
+          },
+        })
+        .then(async () => {
+          await prisma.$disconnect();
+        });
+    });
 
-  const itemsToUpdate = await prisma.storeItems.updateMany({
-    where: {
-      storeId
-    },
-    data: {
-      // data to update
-    },
-  })
-  
-
-  res.send(new OK("Items updated"))
+  res.send(new OK(itemsToUpdate, "Items updated"));
 };
 
 export const deleteItemsFromStore = async (
   req: express.Request,
   res: express.Response,
   storeId: number,
-  itemId:number
+  itemId: number
 ) => {
   logger.info(`${req.method} ${req.originalUrl}, Deleting Item from Store`);
-  const itemsToDelete = await prisma.storeItems.deleteMany({
-    where: {
-      storeId,
-      itemId
-    },
-  });
 
-  res.send(new OK(itemsToDelete,"Items have been deleted"))
+  const currentTimeInSeconds = moment().unix();
+
+  await prisma.storeItems
+    .findFirstOrThrow({
+      where: { storeId, itemId },
+    })
+    .catch(async (err) => {
+      console.log(err);
+      await res.send(new NOT_FOUND(err));
+    });
+
+  const itemsToDelete = await prisma.storeItems
+    .deleteMany({
+      where: {
+        storeId,
+        itemId,
+      },
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(async () => {
+      const currentStoreQuantity = await prisma.storeItems.count({
+        where: {
+          storeId,
+          itemQuantity: {
+            gt: 0,
+          },
+        },
+      });
+
+      await prisma.stores.update({
+        where: { storeId },
+        data: {
+          lastUpdated: currentTimeInSeconds,
+          quantity: currentStoreQuantity,
+        },
+      });
+    })
+    .then(async () => {
+      await prisma.$disconnect();
+    });
+
+  res.send(new OK(itemsToDelete, "Items have been deleted"));
 };
 
 export const addItemsToStore = async (
@@ -82,20 +182,53 @@ export const addItemsToStore = async (
   storeId: number
 ) => {
   //extract the data
-  const { itemName, itemNotes, quantity, url } = req.body;
+  const { itemName, itemNotes, itemQuantity, imageUrl } = req.body;
   const currentTimeInSeconds = moment().unix();
   logger.info(`${req.method} ${req.originalUrl} Adding item(s) to store`);
   //add Items to store
 
-  const itemToAdd = await prisma.storeItems.create({
-    data: {
-      storeId,
-      itemName,
-      itemNotes,
-      quantity,
-      addedAt: currentTimeInSeconds,
-    },
-  });
+  await prisma.stores
+    .findFirstOrThrow({
+      where: { storeId },
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send(new NOT_FOUND(err));
+    });
 
-  res.send(new OK(itemToAdd, "Item Added"));
+  const itemToAdd = await prisma.storeItems
+    .create({
+      data: {
+        storeId,
+        itemName,
+        itemNotes,
+        itemQuantity,
+        imageUrl,
+        addedAt: currentTimeInSeconds,
+      },
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send(new BAD_REQUEST(err))
+    })
+    .finally(async () => {
+      const currentStoreQuantity = await prisma.storeItems.count({
+        where: {
+          storeId,
+          itemQuantity: {
+            gt: 0,
+          },
+        },
+      });
+
+      await prisma.stores.update({
+        where: { storeId },
+        data: {
+          lastUpdated: currentTimeInSeconds,
+          quantity: currentStoreQuantity,
+        },
+      });
+
+    });
+    res.send(new OK(itemToAdd, "Item Added"));
 };

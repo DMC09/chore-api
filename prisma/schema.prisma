@@ -16,17 +16,17 @@ model Stores {
   quantity    Int          @default(0)
   lastUpdated Int
   createdAt   Int
-  url         String
+  imageUrl    String
   storeItems  StoreItems[]
 }
 
 model StoreItems {
-  itemId        Int     @id @default(autoincrement())
-  storeId       Int
-  itemName      String  @unique
-  itemNotes     String
-  quantity      Int
-  addedAt       Int
-  url           String
+  itemId       Int     @id @default(autoincrement())
+  storeId      Int
+  itemName     String  @unique
+  itemNotes    String
+  itemQuantity Int
+  addedAt      Int
+  imageUrl     String
   Store        Stores? @relation(fields: [storeId], references: [storeId])
 }
